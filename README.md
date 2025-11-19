@@ -1,163 +1,630 @@
-<style>
-    /* Estilos para el README */
-    .readme-section {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 20; /* Asegura que esté por encima del chat si lo quieres superpuesto */
-        width: 85%;
-        max-width: 550px;
-        padding: 30px;
-        background-color: var(--color-fondo-app); /* #283038 */
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        color: var(--color-texto-usuario);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByKyvczz</title>
+    <style>
+        :root {
+            /* Colores */
+            --color-plomo-pastel: #BCC2C2;
+            --color-negro-pastel: #36454F;
+            --color-fondo-app: #283038;
+            --color-chat-fondo: #3E4E5A;
+            --color-burbuja-ia: #BCC2C2;
+            --color-burbuja-usuario: #36454F;
+            --color-texto-ia: #36454F;
+            --color-texto-usuario: #FFFFFF;
+            --color-input-fondo: #3E4E5A;
+            --color-icono: #BCC2C2;
+            --color-animacion-fondo: rgba(188, 194, 194, 0.05); /* MUY sutil */
+        }
 
-    .readme-section.active {
-        opacity: 1;
-        visibility: visible;
-    }
+        /* CONFIGURACIÓN BASE Y POSICIONAMIENTO */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-negro-pastel);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--color-texto-usuario);
+            overflow: hidden;
+            position: relative;
+        }
+        .chat-area { scroll-behavior: smooth; padding: 15px 20px; flex-grow: 1; overflow-y: auto; }
+        
+        /* ANIMACIÓN DE FONDO (BURBUJAS) - REDUCIDA */
+        .bubble-container { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+        .bubble {
+            position: absolute; display: block; list-style: none; width: 40px; height: 40px; 
+            background-color: var(--color-animacion-fondo); 
+            animation: animate-bubble 40s linear infinite; 
+            bottom: -150px; border-radius: 50%; filter: blur(7px); 
+            opacity: 0.1; 
+        }
+        /* Solo 6 burbujas para un efecto muy sutil */
+        .bubble:nth-child(1) { left: 20%; width: 90px; height: 90px; animation-delay: 0s; animation-duration: 45s; }
+        .bubble:nth-child(2) { left: 5%; width: 50px; height: 50px; animation-delay: 8s; animation-duration: 35s; }
+        .bubble:nth-child(3) { left: 80%; width: 60px; height: 60px; animation-delay: 15s; animation-duration: 50s; }
+        .bubble:nth-child(4) { left: 35%; width: 120px; height: 120px; animation-delay: 20s; animation-duration: 60s; }
+        .bubble:nth-child(5) { left: 60%; width: 70px; height: 70px; animation-delay: 3s; animation-duration: 25s; }
+        .bubble:nth-child(6) { left: 90%; width: 80px; height: 80px; animation-delay: 12s; animation-duration: 48s; }
+        
+        @keyframes animate-bubble {
+            0% { transform: translateY(0) rotate(0deg) scale(0.7); opacity: 0.05; }
+            50% { opacity: 0.1; }
+            100% { transform: translateY(-1200px) rotate(720deg) scale(1.3); opacity: 0; }
+        }
 
-    .readme-section h2 {
-        color: var(--color-plomo-pastel); /* #BCC2C2 */
-        text-align: center;
-        margin-bottom: 25px;
-        font-size: 1.8em;
-    }
+        /* CONTENEDOR PRINCIPAL Y ANIMACIÓN DE SOMBRA */
+        .chat-app {
+            position: relative; z-index: 1; background-color: var(--color-fondo-app);
+            border-radius: 16px; 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            width: 90%; 
+            max-width: 650px; 
+            height: 85vh; 
+            display: flex;
+            flex-direction: column; overflow: hidden;
+            transition: filter 0.2s ease-out, box-shadow 0.3s ease-in-out; 
+        }
+        .chat-app:hover { box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); }
+        .blur-effect { filter: blur(5px); pointer-events: none; }
 
-    .model-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        margin-top: 20px;
-        overflow: hidden;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    }
+        header {
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative; /* Necesario para el botón 'i' */
+        }
+        header h1 {
+            margin: 0;
+            color: var(--color-plomo-pastel);
+        }
 
-    .model-table th, .model-table td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
+        /* ESTILOS DEL README */
+        .readme-section {
+            position: fixed; /* Cambiado a fixed para superponer mejor */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000; /* Alto z-index para estar siempre al frente */
+            width: 90%;
+            max-width: 600px; /* Un poco más grande para el README */
+            padding: 30px;
+            background-color: var(--color-fondo-app); 
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            color: var(--color-texto-usuario);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            box-sizing: border-box; /* Para que el padding no afecte el width total */
+        }
 
-    .model-table th {
-        background-color: var(--color-negro-pastel); /* #36454F */
-        color: var(--color-plomo-pastel);
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.9em;
-    }
+        .readme-section.active {
+            opacity: 1;
+            visibility: visible;
+        }
 
-    .model-table tr:nth-child(even) {
-        background-color: var(--color-chat-fondo); /* #3E4E5A */
-    }
+        .readme-section h2 {
+            color: var(--color-plomo-pastel); 
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
 
-    .model-table tr:nth-child(odd) {
-        background-color: var(--color-fondo-app); /* #283038 */
-    }
+        .model-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
 
-    .model-table td strong {
-        color: #8be9fd; /* Un color de resaltado */
-    }
+        .model-table th, .model-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .model-table .status-ok {
-        color: #50fa7b; /* Verde brillante */
-        font-weight: bold;
-    }
+        .model-table th {
+            background-color: var(--color-negro-pastel); 
+            color: var(--color-plomo-pastel);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
 
-    .model-table .status-down {
-        color: #ff5555; /* Rojo */
-        font-weight: bold;
-    }
+        .model-table tr:nth-child(even) {
+            background-color: var(--color-chat-fondo); 
+        }
 
-    .readme-close {
-        background: none;
-        border: none;
-        color: var(--color-plomo-pastel);
-        font-size: 1.5em;
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        cursor: pointer;
-        padding: 10px;
-        border-radius: 50%;
-        transition: background-color 0.2s;
-    }
+        .model-table tr:nth-child(odd) {
+            background-color: var(--color-fondo-app); 
+        }
 
-    .readme-close:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-</style>
+        .model-table td strong {
+            color: #8be9fd; /* Un color de resaltado */
+        }
 
-<div class="readme-section" id="readmeSection">
-    <button class="readme-close" onclick="toggleReadme()">&#10005;</button>
-    <h2>Acerca de ByKyvczz</h2>
-    <p>Esta aplicación de chat utiliza potentes modelos de Inteligencia Artificial para ofrecer respuestas precisas y creativas, incluyendo análisis multimodal (texto e imagen).</p>
+        .model-table .status-ok {
+            color: #50fa7b; /* Verde brillante */
+            font-weight: bold;
+        }
 
-    <table class="model-table">
-        <thead>
-            <tr>
-                <th>IA</th>
-                <th>Modelo Principal</th>
-                <th>Estado Actual</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>**Google Gemini**</td>
-                <td><strong>gemini-2.5-flash</strong></td>
-                <td class="status-ok">Activo y estable</td>
-            </tr>
-            <tr>
-                <td>**AIModelProof**</td>
-                <td><strong>gemini-2.5-flash (Proxy)</strong></td>
-                <td class="status-ok">Activo</td>
-            </tr>
-            <tr>
-                <td>**OpenAI**</td>
-                <td>*Modelo no especificado*</td>
-                <td class="status-down">Deshabilitado (Cuota Agotada)</td>
-            </tr>
-        </tbody>
-    </table>
+        .model-table .status-down {
+            color: #ff5555; /* Rojo */
+            font-weight: bold;
+        }
 
-    <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.7;">
-        La disponibilidad de los modelos puede variar. Utilizamos la API de Google AI Studio para Gemini.
-    </p>
-</div>
+        .readme-close {
+            background: none;
+            border: none;
+            color: var(--color-plomo-pastel);
+            font-size: 1.5em;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
 
-<script>
-    // Función JavaScript para mostrar/ocultar el README
-    const readmeElement = document.getElementById('readmeSection');
-    const chatApp = document.getElementById('chatAppContainer'); 
+        .readme-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
 
-    function toggleReadme() {
-        if (readmeElement.classList.contains('active')) {
-            readmeElement.classList.remove('active');
-            if (chatApp) {
-                chatApp.style.opacity = 1; // Restaurar opacidad del chat
-                chatApp.style.pointerEvents = 'auto'; // Habilitar interacciones
+        /* Botón 'i' para abrir el README */
+        .info-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-plomo-pastel);
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .info-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+
+        /* MENSAJES DEL CHAT */
+        .message-row {
+            display: flex; width: 100%; opacity: 0; 
+            transform: translateY(15px) scaleY(0.95); 
+            animation: slideInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            margin-bottom: 10px; 
+        }
+        .message-row:first-child { margin-top: 5px; }
+        .message-row:nth-last-child(2) { animation-delay: 0s; }
+        .message-row:nth-last-child(3) { animation-delay: 0.05s; }
+
+        @keyframes slideInMessage {
+            to { opacity: 1; transform: translateY(0) scaleY(1); }
+        }
+
+        .ia-message { justify-content: flex-start; }
+        .user-message { justify-content: flex-end; }
+        
+        .message-bubble { 
+            max-width: 75%; padding: 12px 18px; border-radius: 20px; line-height: 1.5; word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); 
+            transform-origin: bottom;
+            animation: bubblePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+        }
+        @keyframes bubblePop {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .ia-message .message-bubble { background-color: var(--color-burbuja-ia); color: var(--color-texto-ia); border-bottom-left-radius: 4px; }
+        .user-message .message-bubble { background-color: var(--color-burbuja-usuario); color: var(--color-texto-usuario); border-bottom-right-radius: 4px; }
+        
+        .message-bubble img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* ÁREA DE INPUT Y BOTONES (RIPPLE Y HOVER) */
+        .input-area { background-color: var(--color-input-fondo); padding: 15px 20px; display: flex; align-items: flex-end; border-top: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
+
+        .input-area button, .input-area select {
+            background: none; border: none; color: var(--color-icono); cursor: pointer; padding: 8px;
+            border-radius: 50%; 
+            transition: background-color 0.2s, transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            margin-right: 5px; font-size: 1.5em; flex-shrink: 0;
+            position: relative; overflow: hidden; 
+            z-index: 10;
+        }
+
+        .input-area button:hover:not(#sendButton), 
+        #aiSelector:hover {
+            background-color: rgba(255, 255, 255, 0.15); 
+            transform: scale(1.2); 
+        }
+
+        .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple 0.6s linear; background-color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+        
+        #aiSelector {
+            padding: 8px; border-radius: 8px; background-color: var(--color-negro-pastel);
+            color: var(--color-icono); border: 1px solid var(--color-plomo-pastel);
+            font-size: 0.9em; margin-right: 10px; flex-shrink: 0;
+            transition: transform 0.15s ease-out; appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23BCC2C2%22%20d%3D%22M287%2C197.9c-3.2%2C3.2-8.3%2C3.2-11.6%2C0L146.2%2C68.9L16.9%2C197.9c-3.2%2C3.2-8.3%2C3.2-11.6%2C0c-3.2-3.2-3.2-8.3%2C0-11.6l135.9-135.8c3.2-3.2%2C8.3-3.2%2C11.6%2C0l135.9%2C135.8C290.2%2C189.6%2C290.2%2C194.7%2C287%2C197.9z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat; background-position: right 8px center; background-size: 10px auto;
+        }
+
+        #messageInput { flex-grow: 1; padding: 10px 15px; border: none; border-radius: 20px; background-color: var(--color-negro-pastel); color: var(--color-texto-usuario); font-size: 1em; resize: none; max-height: 150px; line-height: 1.4; margin: 0 10px; overflow-y: auto; }
+        
+        #sendButton {
+            margin-left: 10px; background-color: var(--color-plomo-pastel); color: var(--color-negro-pastel);
+            border-radius: 50%; width: 45px; height: 45px; display: flex; justify-content: center;
+            align-items: center; font-size: 1.2em; flex-shrink: 0;
+            transition: background-color 0.3s ease, transform 0.15s ease-out;
+            position: relative; overflow: hidden; 
+        }
+        #sendButton:hover { background-color: #A0B0B0; transform: scale(1.2); }
+
+        /* SPINNER DE CARGA */
+        .ia-typing-indicator { display: none; align-items: center; justify-content: flex-start; margin-bottom: 15px; margin-left: 5px; }
+        .ia-typing-indicator .message-bubble { background-color: var(--color-burbuja-ia); display: flex; align-items: center; padding: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        .spinner-circle { 
+            border: 3px solid var(--color-texto-ia); border-right-color: transparent; 
+            border-radius: 50%; width: 15px; height: 15px; 
+            animation: spin 0.6s cubic-bezier(0.5, 0, 0.5, 1) infinite, color-change 2s infinite alternate; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes color-change {
+            0% { border-color: var(--color-texto-ia); border-right-color: transparent; }
+            100% { border-color: #A0B0B0; border-right-color: transparent; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="bubble-container">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <div class="chat-app" id="chatAppContainer">
+        <header>
+            <h1>ByKyvczz</h1>
+            <button class="info-button" onclick="toggleReadme()">i</button>
+        </header>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message-row ia-message">
+                <div class="message-bubble">
+                    <p>Hola, ¿qué puedo estudiar hoy? Puedes subir una imagen o simplemente escribe tu pregunta.</p>
+                </div>
+            </div>
+            
+            <div class="ia-typing-indicator" id="typingIndicator">
+                <div class="message-bubble">
+                    <div class="spinner-circle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            
+            <button id="addFileButton" type="button">
+                &#43;
+            </button>
+            
+            <select id="aiSelector">
+                <option value="gemini_main" selected>Gemini (Multimodal)</option>
+                <option value="gemini_hf_proxy">AIModelProof</option> 
+                <option value="openai" disabled>OpenAI (Cuota Agotada/Deshabilitado)</option> 
+            </select>
+            
+            <textarea id="messageInput" placeholder="Escribe un mensaje..." rows="1"></textarea>
+            
+            <button id="sendButton" type="button">
+                &#10148;
+            </button>
+        </div>
+    </div>
+
+    <div class="readme-section" id="readmeSection">
+        <button class="readme-close" onclick="toggleReadme()">&#10005;</button>
+        <h2>Configuración de IA</h2>
+
+        <table class="model-table">
+            <thead>
+                <tr>
+                    <th>Plataforma</th>
+                    <th>Modelo</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>**Google Gemini**</td>
+                    <td><strong>gemini-2.5-flash</strong></td>
+                    <td class="status-ok">Activo</td>
+                </tr>
+                <tr>
+                    <td>**AIModelProof**</td>
+                    <td><strong>gemini-2.5-flash (Proxy)</strong></td>
+                    <td class="status-ok">Activo</td>
+                </tr>
+                <tr>
+                    <td>**OpenAI**</td>
+                    <td>-</td>
+                    <td class="status-down">Deshabilitado (Cuota)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ⚠️ API KEYS - USANDO LAS CLAVES PROPORCIONADAS
+        const API_KEYS = {
+            gemini_main: "AIzaSyBQk1sdhEFzFR0w8H5g16K65fnnau0gDu0", 
+            gemini_hf_proxy: "AIzaSyDg0Sex3WqawcTbd_q7UHpkPQ7IX0i1Yj8", 
+            openai: "sk-proj-uLrl1QyBSlhPiThUZN_JZkXk-KS5aREGRBrCKZt8cAJneSlqMhe54TkVqlRXcDY1ReMZOtsTbT3BlbkFJj1ns2XlAmOyFRH0y-2YIKNwuRVG4PN_esDp1QwMY-BS8VpBeMG03cRipCOU1GhqHkqYagk48gA",
+        };
+        
+        // MODELO ESTABLE
+        const GEMINI_MODEL = "gemini-2.5-flash";
+
+        const chatArea = document.getElementById('chatArea');
+        const messageInput = document.getElementById('messageInput');
+        const fileInput = document.getElementById('fileInput');
+        const aiSelector = document.getElementById('aiSelector');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const sendButton = document.getElementById('sendButton');
+        const chatAppContainer = document.getElementById('chatAppContainer');
+        const readmeSection = document.getElementById('readmeSection'); // Referencia al README
+        
+        let uploadedImageBase64 = null;
+        
+        // --- 1. Funciones de Interfaz y Efectos ---
+
+        function applyBlur(duration = 200) { 
+            chatAppContainer.classList.add('blur-effect');
+            setTimeout(() => {
+                chatAppContainer.classList.remove('blur-effect');
+            }, duration);
+        }
+
+        function addMessage(text, sender, imageBase64 = null) {
+            const row = document.createElement('div');
+            row.className = `message-row ${sender}-message`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            if (imageBase64) {
+                const img = document.createElement('img');
+                img.src = imageBase64;
+                img.alt = 'Imagen cargada';
+                bubble.appendChild(img);
             }
-        } else {
-            readmeElement.classList.add('active');
-            if (chatApp) {
-                chatApp.style.opacity = 0.4; // Oscurecer/difuminar el chat
-                chatApp.style.pointerEvents = 'none'; // Deshabilitar interacciones
+
+            const p = document.createElement('p');
+            p.textContent = text;
+            bubble.appendChild(p);
+
+            row.appendChild(bubble);
+            chatArea.appendChild(row);
+            
+            row.offsetHeight; 
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const ripple = document.createElement('span');
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            ripple.style.width = ripple.style.height = `${diameter}px`;
+            ripple.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+            ripple.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+            ripple.className = 'ripple';
+
+            const oldRipple = button.querySelector('.ripple');
+            if (oldRipple) {
+                oldRipple.remove();
+            }
+
+            button.appendChild(ripple);
+            if (button.id === 'addFileButton') {
+                 document.getElementById('fileInput').click();
             }
         }
-    }
-    
-    // Opcional: Añade un botón a tu interfaz principal para llamar a toggleReadme()
-    // Por ejemplo, puedes añadir un botón en el header del chat: 
-    /*
-        <button onclick="toggleReadme()" style="position: absolute; right: 20px; top: 15px; background: none; border: none; color: #BCC2C2; cursor: pointer;">
-            i
-        </button>
-    */
-</script>
+
+        document.getElementById('addFileButton').addEventListener('click', createRipple);
+        document.getElementById('sendButton').addEventListener('click', (e) => {
+            createRipple(e);
+            sendMessage();
+        });
+        document.getElementById('aiSelector').addEventListener('change', () => {
+             applyBlur(200); 
+        });
+
+        // --- Manejo de Archivos y Portapapeles (Ctrl+V) ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const base64String = await fileToBase64(file);
+                uploadedImageBase64 = base64String;
+                addMessage(`Imagen lista para enviar. Escribe tu pregunta.`, 'user', uploadedImageBase64);
+                fileInput.value = '';
+                messageInput.focus();
+            }
+        });
+
+        document.addEventListener('paste', async (event) => {
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for (const item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        event.preventDefault();
+                        const base64String = await fileToBase64(file);
+                        uploadedImageBase64 = base64String;
+                        applyBlur(200); 
+                        addMessage(`Imagen pegada y lista para enviar. Escribe tu pregunta.`, 'user', uploadedImageBase64);
+                        messageInput.focus();
+                        return;
+                    }
+                }
+            }
+        });
+
+        // --- Envío de Mensajes y Lógica de IA ---
+
+        async function sendMessage() {
+            const prompt = messageInput.value.trim();
+            const selectedIA = aiSelector.value;
+            const currentImage = uploadedImageBase64;
+
+            if (!prompt && !currentImage) return;
+
+            sendButton.classList.add('send-animation');
+            sendButton.addEventListener('animationend', () => {
+                sendButton.classList.remove('send-animation');
+            }, { once: true });
+            applyBlur(200); 
+
+            addMessage(prompt, 'user', currentImage);
+            
+            messageInput.value = '';
+            messageInput.style.height = 'auto'; 
+            uploadedImageBase64 = null;
+            typingIndicator.style.display = 'flex';
+            chatArea.scrollTop = chatArea.scrollHeight; 
+            
+            let iaResponse = 'No se pudo obtener una respuesta.';
+
+            try {
+                if (selectedIA === 'gemini_main') {
+                    iaResponse = await callGemini(prompt, currentImage, API_KEYS.gemini_main);
+                } else if (selectedIA === 'gemini_hf_proxy') {
+                    let result = await callGemini(prompt, currentImage, API_KEYS.gemini_hf_proxy);
+                    iaResponse = `(AIModelProof - Proxy Stable): ${result}`;
+                } else if (selectedIA === 'openai') {
+                     iaResponse = "OpenAI está deshabilitado. Cuota agotada (Error 429).";
+                }
+            } catch (error) {
+                iaResponse = `Error en la IA: ${error.message}.`;
+            } finally {
+                typingIndicator.style.display = 'none';
+                addMessage(iaResponse, 'ia');
+            }
+        }
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('sendButton').click();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = (messageInput.scrollHeight) + 'px';
+        });
+
+        // --- Funciones de Llamada a APIs ---
+
+        async function callGemini(prompt, imageBase64, apiKey) {
+            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+            
+            const systemInstruction = "Eres un asistente de chat útil y siempre debes responder en ESPAÑOL. Mantén las respuestas claras y concisas.";
+
+            const parts = [{ text: systemInstruction }, { text: prompt }];
+            
+            if (imageBase64) {
+                const base64Data = imageBase64.split(';base64,')[1];
+                const mimeType = imageBase64.split(';base64,')[0].split(':')[1];
+
+                parts.unshift({
+                    inlineData: {
+                        mimeType: mimeType,
+                        data: base64Data
+                    }
+                });
+            }
+            
+            const body = JSON.stringify({
+                contents: [{ parts: parts }],
+                generationConfig: { 
+                    temperature: 0.7,
+                    maxOutputTokens: 1000,
+                }
+            });
+
+            const response = await fetch(GEMINI_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: body
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || `Gemini Status ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo obtener una respuesta válida de Gemini.";
+        }
+
+        // --- Lógica del README ---
+        function toggleReadme() {
+            if (readmeSection.classList.contains('active')) {
+                readmeSection.classList.remove('active');
+                if (chatAppContainer) {
+                    chatAppContainer.style.opacity = 1; 
+                    chatAppContainer.style.pointerEvents = 'auto'; 
+                }
+            } else {
+                readmeSection.classList.add('active');
+                if (chatAppContainer) {
+                    chatAppContainer.style.opacity = 0.4; 
+                    chatAppContainer.style.pointerEvents = 'none'; 
+                }
+            }
+        }
+    </script>
+</body>
+</html>
